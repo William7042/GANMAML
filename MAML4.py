@@ -9,7 +9,7 @@ import random
 import time
 from collections import deque
 
-# Import from your existing file
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 NOISE_DIM = 100
 MAZE_SIZE = 11
@@ -19,7 +19,6 @@ class Generator(nn.Module):
         self.name = 'generator'
         
         self.model = nn.Sequential(
-            # Start with 3x3
             nn.Linear(NOISE_DIM, 3*3*256),
             nn.BatchNorm1d(3*3*256),
             nn.LeakyReLU(0.2, inplace=True),
@@ -45,7 +44,7 @@ class Generator(nn.Module):
         return self.model(x)
 
 def visualize_maze(maze):
-    """Utility function to visualize maze"""
+
     plt.figure(figsize=(8, 8))
     plt.imshow(maze, cmap='viridis')
     plt.axis('off')
@@ -71,14 +70,14 @@ class PolicyNetwork(nn.Module):
         if not isinstance(x, torch.Tensor):
             x = torch.FloatTensor(x)
         logits = self.net(x)
-        # Add small epsilon to ensure no zeros
+
         probs = F.softmax(logits / self.temperature, dim=-1)
-        # Ensure probabilities sum to 1
+
         return probs / probs.sum()
 
 class MazeMAML:
     """
-    Model-Agnostic Meta-Learning implementation for maze solving
+    MAML implementation for maze solving
     Follows the MAML algorithm:
     1. Sample batch of tasks (mazes)
     2. For each task:
@@ -88,7 +87,7 @@ class MazeMAML:
     3. Perform meta-update across all tasks
     """
     def __init__(self, maze_size=11, vision_range=2, load_checkpoint=True):
-        self.maze_size = maze_size  # Set to 11 explicitly
+        self.maze_size = maze_size  
         self.vision_range = vision_range
         
         # Calculate input size
@@ -132,7 +131,7 @@ class MazeMAML:
             return maze
 
     def save_checkpoint(self, epoch, meta_loss, success_rate=None):
-        """Save training progress with correct input size"""
+
         checkpoint_data = {
             'epoch': epoch,
             'model_state_dict': self.policy.state_dict(),
@@ -140,7 +139,7 @@ class MazeMAML:
             'loss': meta_loss,
             'success_rate': success_rate,
             'vision_range': self.vision_range,
-            'input_size': self.input_size,  # This is the total input size already
+            'input_size': self.input_size,  
             'hyperparameters': {
                 'temperature': self.policy.temperature,
                 'inner_lr': self.inner_lr
@@ -158,7 +157,7 @@ class MazeMAML:
             print(f"Current input size: {self.input_size}")
             
             if (checkpoint['vision_range'] == self.vision_range and 
-                checkpoint['input_size'] == self.input_size):  # Compare total input sizes
+                checkpoint['input_size'] == self.input_size): 
                 
                 self.policy.load_state_dict(checkpoint['model_state_dict'])
                 self.meta_optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -186,7 +185,6 @@ class MazeMAML:
             return False
 
     def get_state(self, maze, pos):
-        """Enhanced state representation with proper boundary checking"""
         x, y = pos
         goal_pos = (self.maze_size-2, self.maze_size-2)
         pos_norm = np.array(pos, dtype=np.float32) / self.maze_size
